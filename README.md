@@ -10,7 +10,6 @@
 
 **Transform any API into a revenue-generating service in minutes**
 
-[Features](#features) • [Architecture](#architecture) • [Quick Start](#quick-start) • [API Docs](#api-documentation) • [Demo](#demo)
 
 </div>
 
@@ -425,7 +424,7 @@ done
 ```
 
 ### Dashboard Preview
-<img src="dashboard-preview.png" alt="Dashboard Preview" width="800"/>
+<img src="img/dashboard-preview.png" alt="Dashboard Preview" width="800"/>
 
 ## 🏆 Technical Achievements
 
