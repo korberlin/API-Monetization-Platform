@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Developer {
+  id        Int        @id @default(autoincrement())
+  name      String
+  apiUrl    String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  customers Customer[]
+}
+
+model Tier {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  price      Decimal  @db.Decimal(10, 2)
+  rateLimit  Int      
+  features   Json?   
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  customers  Customer[]
+}
+
+model Customer {
+  id          Int        @id @default(autoincrement())
+  name        String
+  email       String     @unique
+  company     String?
+  developerId Int
+  developer   Developer  @relation(fields: [developerId], references: [id])
+  tierId      Int
+  tier        Tier       @relation(fields: [tierId], references: [id])
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  apiKeys     apiKey[]
+  usage       usageHistory[]
+  invoices    Invoice[]
+}
+
+model apiKey {
+  id         Int       @id @default(autoincrement())
+  key        String    @unique @default(cuid())
+  name       String?  
+  customerId Int
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  isActive   Boolean   @default(true)
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  
+  @@index([key])
+  @@index([customerId])
+}
+
+model usageHistory {
+  id           Int      @id @default(autoincrement())
+  customerId   Int
+  customer     Customer @relation(fields: [customerId], references: [id])
+  apiKeyId     Int?
+  endpoint     String
+  method       String
+  statusCode   Int
+  responseTime Int      // in milliseconds
+  timestamp    DateTime @default(now())
+  
+  @@index([customerId, timestamp])
+  @@index([timestamp])
+}
+
+model Invoice {
+  id             Int          @id @default(autoincrement())
+  invoiceNumber  String       @unique
+  customerId     Int
+  customer       Customer     @relation(fields: [customerId], references: [id])
+  periodStart    DateTime
+  periodEnd      DateTime
+  totalUsage     Int
+  amount         Decimal      @db.Decimal(10, 2)
+  status         InvoiceStatus @default(PENDING)
+  dueDate        DateTime
+  paidAt         DateTime?
+  stripeInvoiceId String?     @unique
+  createdAt      DateTime     @default(now())
+  
+  lineItems      InvoiceLineItem[]
+  
+  @@index([customerId])
+  @@index([status])
+}
+
+model InvoiceLineItem {
+  id          Int      @id @default(autoincrement())
+  invoiceId   Int
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  description String
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  amount      Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}

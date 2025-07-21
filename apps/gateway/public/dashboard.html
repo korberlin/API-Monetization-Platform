@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Monetization Platform - Demo Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #333;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #4ade80;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.1);
+        }
+        
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .metric {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .api-key-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .api-key {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0a0a0a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .usage-chart {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            height: 200px;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            min-height: 10px;
+            transition: all 0.3s;
+        }
+        
+        .bar:hover {
+            opacity: 0.8;
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .endpoint-list {
+            margin-top: 1rem;
+        }
+        
+        .endpoint {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: #0a0a0a;
+            margin-bottom: 0.5rem;
+            border-radius: 6px;
+        }
+        
+        .endpoint-path {
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .endpoint-count {
+            color: #888;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        .tier-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #764ba2;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>API Monetization Platform</h1>
+            <div class="status">
+                <span class="status-dot"></span>
+                <span>All Systems Operational</span>
+            </div>
+        </header>
+        
+        <div class="api-key-section">
+            <h3>Your API Key <span class="tier-badge">Loading...</span></h3>
+            <div class="api-key">
+                <span id="apiKey">Loading...</span>
+                <button onclick="copyApiKey()">Copy</button>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>Today's Usage</h3>
+                <div class="metric" id="todayUsage">-</div>
+                <div class="metric-label">API calls</div>
+            </div>
+            
+            <div class="card">
+                <h3>Current Month</h3>
+                <div class="metric" id="monthUsage">-</div>
+                <div class="metric-label">Total requests</div>
+            </div>
+            
+            <div class="card">
+                <h3>Rate Limit</h3>
+                <div class="metric" id="rateLimit">- / -</div>
+                <div class="metric-label">Remaining today</div>
+            </div>
+            
+            <div class="card">
+                <h3>Current Bill</h3>
+                <div class="metric" id="currentBill">-</div>
+                <div class="metric-label">Due -</div>
+            </div>
+        </div>
+        
+        <div class="usage-chart">
+            <h3>Daily Usage Trend</h3>
+            <div class="chart-bars">
+                <div class="bar" style="height: 10%"><span class="bar-label">Mon</span></div>
+                <div class="bar" style="height: 10%"><span class="bar-label">Tue</span></div>
+                <div class="bar" style="height: 10%"><span class="bar-label">Wed</span></div>
+                <div class="bar" style="height: 10%"><span class="bar-label">Thu</span></div>
+                <div class="bar" style="height: 10%"><span class="bar-label">Fri</span></div>
+                <div class="bar" style="height: 10%"><span class="bar-label">Sat</span></div>
+                <div class="bar" style="height: 10%"><span class="bar-label">Sun</span></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Top Endpoints</h3>
+            <div class="endpoint-list" id="endpoints">
+                <div class="endpoint">
+                    <span class="endpoint-path">Loading...</span>
+                    <span class="endpoint-count">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_KEY = 'pro_api_key_789';
+        const API_URL = 'http://localhost:3000';
+        
+        async function fetchData(endpoint) {
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    headers: {
+                        'X-API-Key': API_KEY
+                    }
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                // Show error message if CORS issue
+                if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+                    console.error('CORS error - make sure to access the dashboard via http://localhost:3000/dashboard.html');
+                }
+                return null;
+            }
+        }
+        
+        async function loadDashboardData() {
+            // Fetch all data
+            const [dashboardData, currentUsage, topEndpoints, tiers] = await Promise.all([
+                fetchData('/analytics/dashboard'),
+                fetchData('/billing/current-usage'),
+                fetchData('/analytics/endpoints?period=week'),
+                fetchData('/billing/tiers')
+            ]);
+            
+            // Update API key display
+            document.getElementById('apiKey').textContent = API_KEY;
+            
+            // Update tier badge
+            if (currentUsage && currentUsage.tier) {
+                const tierBadge = document.querySelector('.tier-badge');
+                tierBadge.textContent = `${currentUsage.tier.name} TIER`;
+            }
+            
+            // Update usage metrics
+            if (dashboardData && dashboardData.summary) {
+                animateNumber('todayUsage', dashboardData.summary.today);
+                animateNumber('monthUsage', dashboardData.summary.thisMonth);
+            }
+            
+            // Update rate limit
+            if (currentUsage && currentUsage.usage) {
+                const remaining = currentUsage.usage.limit - currentUsage.usage.count;
+                const limit = currentUsage.usage.limit;
+                const limitDisplay = limit >= 1000 ? `${(limit / 1000).toFixed(0)}k` : limit;
+                document.getElementById('rateLimit').textContent = `${remaining.toLocaleString()} / ${limitDisplay}`;
+                document.querySelector('#rateLimit + .metric-label').textContent = 
+                    currentUsage.period ? 'Remaining this period' : 'Remaining today';
+            }
+            
+            // Update current bill
+            if (currentUsage && currentUsage.tier) {
+                document.getElementById('currentBill').textContent = `${currentUsage.tier.price}`;
+                const endDate = new Date(currentUsage.period.endDate);
+                const monthName = endDate.toLocaleString('default', { month: 'short' });
+                document.querySelector('#currentBill + .metric-label').textContent = `Due ${monthName} ${endDate.getDate()}`;
+            }
+            
+            // Update weekly chart with actual data
+            if (dashboardData && dashboardData.summary) {
+                // Get daily breakdown if available from trends endpoint
+                fetchData('/analytics/trends?period=day').then(trendsData => {
+                    if (trendsData && trendsData.data) {
+                        updateWeeklyChart(trendsData.data);
+                    } else {
+                        // Fallback: distribute weekly total across days
+                        const weeklyTotal = dashboardData.summary.thisWeek || 0;
+                        const bars = document.querySelectorAll('.bar');
+                        bars.forEach((bar, index) => {
+                            const height = weeklyTotal > 0 ? Math.random() * 80 + 20 : 10;
+                            bar.style.height = `${height}%`;
+                        });
+                    }
+                });
+            }
+            
+            // Update top endpoints
+            if (topEndpoints && topEndpoints.length > 0) {
+                const endpointsList = document.getElementById('endpoints');
+                endpointsList.innerHTML = topEndpoints.slice(0, 5).map(ep => `
+                    <div class="endpoint">
+                        <span class="endpoint-path">${ep.endpoint}</span>
+                        <span class="endpoint-count">${ep.requestCount.toLocaleString()} calls</span>
+                    </div>
+                `).join('');
+            }
+            
+            // Show health status
+            if (dashboardData && dashboardData.errorRate) {
+                const healthStatus = dashboardData.errorRate.isHealthy ? 
+                    'All Systems Operational' : 
+                    `High Error Rate: ${dashboardData.errorRate.errorRate.toFixed(1)}%`;
+                document.querySelector('.status span:last-child').textContent = healthStatus;
+                if (!dashboardData.errorRate.isHealthy) {
+                    document.querySelector('.status').style.color = '#f87171';
+                    document.querySelector('.status-dot').style.background = '#f87171';
+                }
+            }
+            
+            // Show growth metrics
+            if (dashboardData && dashboardData.growth) {
+                const growthTrend = dashboardData.growth.trend;
+                const growthPercent = dashboardData.growth.percentage;
+                const weekCard = document.querySelector('#monthUsage').closest('.card');
+                if (weekCard && growthPercent !== undefined) {
+                    const growthIndicator = growthTrend === 'up' ? '↑' : '↓';
+                    const growthColor = growthTrend === 'up' ? '#4ade80' : '#f87171';
+                    const growthHtml = `<div style="font-size: 0.9rem; color: ${growthColor}; margin-top: 0.5rem">
+                        ${growthIndicator} ${Math.abs(growthPercent).toFixed(1)}% vs last week
+                    </div>`;
+                    weekCard.insertAdjacentHTML('beforeend', growthHtml);
+                }
+            }
+        }
+        
+        function animateNumber(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            let current = 0;
+            const increment = targetValue / 30;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= targetValue) {
+                    current = targetValue;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current).toLocaleString();
+            }, 20);
+        }
+        
+        function updateWeeklyChart(data) {
+            const bars = document.querySelectorAll('.bar');
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            if (!data || data.length === 0) {
+                // No data, show minimal bars
+                bars.forEach(bar => bar.style.height = '10%');
+                return;
+            }
+            
+            // Find max value for scaling
+            const maxCount = Math.max(...data.map(d => d.count || 0), 1);
+            
+            // Update each bar
+            data.slice(-7).forEach((item, index) => {
+                if (bars[index]) {
+                    const count = item.count || 0;
+                    const height = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                    bars[index].style.height = `${Math.max(height, 5)}%`;
+                    
+                    // Update label if needed
+                    const date = new Date(item.timestamp);
+                    const dayName = days[date.getDay()];
+                    bars[index].querySelector('.bar-label').textContent = dayName;
+                }
+            });
+        }
+        
+        function copyApiKey() {
+            const apiKey = document.getElementById('apiKey').textContent;
+            navigator.clipboard.writeText(apiKey);
+            alert('API Key copied to clipboard!');
+        }
+        
+        // Load data on page load
+        window.onload = function() {
+            loadDashboardData();
+            // Refresh data every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        }
+    </script>
+</body>
+</html>
