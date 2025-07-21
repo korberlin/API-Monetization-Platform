@@ -1,0 +1,138 @@
+services:
+  # Database service
+  postgres:
+    image: postgres:15
+    ports:
+      - "5222:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-defaultpassword}
+      POSTGRES_DB: api_monetization
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - api_monetization
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cache service
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - api_monetization
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Gateway Service
+  gateway:
+    build:
+      context: ./apps/gateway
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-defaultpassword}@postgres:5432/api_monetization
+      REDIS_URL: redis://redis:6379
+      ANALYTICS_SERVICE_URL: http://analytics:3002
+      BILLING_SERVICE_URL: http://billing:3001
+      TARGET_API_URL: ${TARGET_API_URL:-https://httpbin.org}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-admin_secret_123}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      analytics:
+        condition: service_started
+      billing:
+        condition: service_started
+    networks:
+      - api_monetization
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Analytics Service
+  analytics:
+    build:
+      context: ./apps/analytics
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-defaultpassword}@postgres:5432/api_monetization
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - api_monetization
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Billing Service
+  billing:
+    build:
+      context: ./apps/billing
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-defaultpassword}@postgres:5432/api_monetization
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - api_monetization
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Database migration runner (runs once and exits)
+  migration:
+    build:
+      context: ./apps/gateway
+      dockerfile: Dockerfile
+      target: development
+    command: ["npx", "prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-defaultpassword}@postgres:5432/api_monetization
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - api_monetization
+    restart: "no"
+
+volumes:
+  postgres_data:
+
+networks:
+  api_monetization:
+    driver: bridge
