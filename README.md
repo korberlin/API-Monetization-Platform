@@ -85,7 +85,7 @@ graph TB
 - PostgreSQL + Prisma ORM
 - Redis (Caching + Rate Limiting)
 - Docker & Docker Compose
-- BullMQ (Job Processing)
+- NestJS Schedule (Background Jobs)
 
 </td>
 <td>
@@ -93,9 +93,9 @@ graph TB
 **Features**
 - RESTful API Design
 - Swagger Documentation
-- JWT-style API Keys
+- API Key Authentication
 - Microservices Architecture
-- Background Job Processing
+- Scheduled Background Jobs
 
 </td>
 <td>
@@ -448,6 +448,7 @@ done
 - **Request Proxying**: ~10ms overhead on average
 - **Caching Strategy**: Customer data cached for 5 minutes
 - **Database Indexes**: Optimized queries for usage analytics
+- **Batch Processing**: Redis lists buffer usage logs, flushed to DB every 30 seconds
 - **Connection Pooling**: Reuses database connections
 
 ## 🔨 Docker Helper Commands
