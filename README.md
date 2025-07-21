@@ -96,6 +96,7 @@ graph TB
 - API Key Authentication
 - Microservices Architecture
 - Scheduled Background Jobs
+- Unit Testing with Jest
 
 </td>
 <td>
@@ -434,6 +435,7 @@ done
 2. **Redis Integration** - Learned and implemented caching, rate limiting, and queue management
 3. **Complex Billing Logic** - Built a flexible billing system with pro-ration calculations
 4. **Background Processing** - Implemented efficient batch processing to minimize database writes
+5. **Comprehensive Testing** - Wrote unit tests for all services with proper mocking and edge case coverage
 
 ### 🌟 Design Decisions
 
@@ -498,18 +500,53 @@ api-monetization-platform/
 
 ## 🧪 Testing
 
+The project includes comprehensive unit tests for all services with mocked dependencies.
+
+### Running Unit Tests
+
+```bash
+# Run tests for a specific service
+cd apps/gateway
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:cov
+```
+
+### Test All Services
+
+```bash
+# Gateway service tests
+cd apps/gateway && npm run test
+
+# Analytics service tests  
+cd apps/analytics && npm run test
+
+# Billing service tests
+cd apps/billing && npm run test
+```
+
+### Manual API Testing
+
 ```bash
 # Import Postman collection
 Import `API_Monetization_Platform.postman_collection.json`
-
-# Run integration tests
-npm run test:e2e
 
 # Check service health
 curl http://localhost:3000/health
 curl http://localhost:3001/health
 curl http://localhost:3002/health
 ```
+
+### Test Coverage
+
+- ✅ Service layer unit tests with Jest
+- ✅ Mocked external dependencies (Prisma, Redis)
+- ✅ Edge case handling and error scenarios
+- ✅ Business logic validation
 
 ## 🚧 Future Enhancements
 
